@@ -2,7 +2,9 @@ package main
 
 import (
 	"errors"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -74,11 +76,19 @@ func getTodoById(id string) (*todo, error) {
 }
 
 func main() {
+	port := os.Getenv("PORT")
+
+	if port == "" {
+		log.Fatal("$PORT must be set")
+	}
+
 	router := gin.Default() // this is the server
 	router.GET("/", getHome)
 	router.GET("/todos", getTodos)
 	router.GET("/todos/:id", getTodo)
 	router.PATCH("/todos/:id", toggleTodoStatus)
 	router.POST("/todos", addTodo)
-	router.Run("localhost:7070")
+	// router.Run("localhost:7070")
+
+	router.Run(":" + port)
 }
