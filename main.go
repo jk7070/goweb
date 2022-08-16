@@ -1,78 +1,18 @@
 package main
 
 import (
-	"errors"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
+
+	calc "github.com/jk7070/goweb/calculations"
+	todo "github.com/jk7070/goweb/todos"
 )
-
-type todo struct {
-	ID        string `json:"id"`
-	Item      string `json:"item"`
-	Completed bool   `json:"completed"`
-}
-
-var todos = []todo{
-	{ID: "1", Item: "Clean room", Completed: false},
-	{ID: "2", Item: "Read book", Completed: false},
-	{ID: "3", Item: "Watch movie", Completed: false},
-}
 
 func getHome(context *gin.Context) {
 	context.IndentedJSON(http.StatusOK, "Welcome to this Golang Rest API")
-}
-
-func getTodos(context *gin.Context) {
-	context.IndentedJSON(http.StatusOK, todos)
-}
-
-func addTodo(context *gin.Context) {
-	var newTodo todo
-
-	if err := context.BindJSON(&newTodo); err != nil {
-		return
-	}
-
-	todos = append(todos, newTodo)
-
-	context.IndentedJSON(http.StatusCreated, newTodo)
-}
-
-func getTodo(context *gin.Context) {
-	id := context.Param("id")
-	todo, err := getTodoById(id)
-
-	if err != nil {
-		context.IndentedJSON(http.StatusNotFound, gin.H{"message": "todo not found"})
-	}
-
-	context.IndentedJSON(http.StatusOK, todo)
-}
-
-func toggleTodoStatus(context *gin.Context) {
-	id := context.Param("id")
-	todo, err := getTodoById(id)
-
-	if err != nil {
-		context.IndentedJSON(http.StatusNotFound, gin.H{"message": "todo not found"})
-	}
-
-	todo.Completed = !todo.Completed
-
-	context.IndentedJSON(http.StatusOK, todo)
-}
-
-func getTodoById(id string) (*todo, error) {
-	for i, t := range todos {
-		if t.ID == id {
-			return &todos[i], nil
-		}
-	}
-
-	return nil, errors.New("todo not found")
 }
 
 func main() {
@@ -83,12 +23,20 @@ func main() {
 	}
 
 	router := gin.Default() // this is the server
-	router.GET("/", getHome)
-	router.GET("/todos", getTodos)
-	router.GET("/todos/:id", getTodo)
-	router.PATCH("/todos/:id", toggleTodoStatus)
-	router.POST("/todos", addTodo)
-	// router.Run("localhost:7070")
 
+	router.GET("/", getHome)
+
+	router.GET("/calc_results", calc.CalcResults)
+	router.GET("/calc/:n", calc.Calculate)
+
+	router.GET("/todos", todo.GetTodos)
+	router.GET("/todos/:id", todo.GetTodo)
+	router.PATCH("/todos/:id", todo.ToggleTodoStatus)
+	router.POST("/todos", todo.AddTodo)
+
+	// router.Run("localhost:7070")
 	router.Run(":" + port)
+
+	// setup workers
+
 }
