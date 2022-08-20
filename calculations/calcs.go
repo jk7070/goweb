@@ -4,19 +4,25 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Result struct {
-	Input  int `json:"input"`
-	Output int `json:"output"`
+	Input    int     `json:"input"`
+	Output   int     `json:"output"`
+	Duration float64 `json:"duration"`
 }
 
 var results = []Result{}
 
 func CalcResults(context *gin.Context) {
-	context.IndentedJSON(http.StatusOK, results)
+	if len(results) == 0 {
+		context.IndentedJSON(http.StatusOK, "No results added yet!")
+	} else {
+		context.IndentedJSON(http.StatusOK, results)
+	}
 }
 
 func Calculate(context *gin.Context) {
@@ -25,8 +31,14 @@ func Calculate(context *gin.Context) {
 
 	N, _ := strconv.Atoi(n)
 
+	start := time.Now()
+
 	res := FibonacciRecursion(N)
-	results = append(results, Result{Input: N, Output: res})
+
+	end := time.Now()
+	elapsed := end.Sub(start).Seconds()
+
+	results = append(results, Result{Input: N, Output: res, Duration: elapsed})
 
 	context.IndentedJSON(http.StatusOK, results)
 
